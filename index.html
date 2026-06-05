@@ -547,7 +547,7 @@ textarea:focus-visible{outline:none;}
 .notif-row:last-child{border-bottom:none;}
 .notif-row:hover{background:var(--ca);}
 .notif-row-left{font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--tx);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.notif-row-time{font-size:10px;color:var(--mu);opacity:0.55;white-space:nowrap;margin-left:8px;flex-shrink:0;}
+.notif-row-time{font-size:10px;color:var(--mu);white-space:nowrap;margin-left:8px;flex-shrink:0;}
 .notif-empty{font-family:'Cormorant Garamond',serif;font-size:13px;font-style:italic;color:var(--mu);text-align:center;padding:18px 12px;}
 </style>
 </head>
@@ -1600,7 +1600,7 @@ async function vmLoadMsgs(){
   if(_vmCache[viewEntryId])return _vmCache[viewEntryId];
   try{
     const rows=await sbQ('messages?entry_id=eq.'+encodeURIComponent(viewEntryId)+'&order=created_at.asc');
-    _vmCache[viewEntryId]=(rows||[]).map(r=>({_sbid:r.id,role:r.role,content:r.content,time:r.time}));
+    _vmCache[viewEntryId]=(rows||[]).map(r=>({_sbid:r.id,role:r.role,content:r.content,time:r.time,created_at:r.created_at}));
   }catch(e){
     // fallback to localStorage
     try{const s=localStorage.getItem('tn-msgs-'+viewEntryId);_vmCache[viewEntryId]=s?JSON.parse(s):[];}catch(_){_vmCache[viewEntryId]=[];}
@@ -1613,7 +1613,7 @@ async function vmInsertMsg(msg){
   _vmCache[viewEntryId].push(msg);
   try{
     const row=await sbQ('messages',{method:'POST',headers:sbH({'Prefer':'return=representation'}),body:JSON.stringify({entry_id:viewEntryId,role:msg.role,content:msg.content,time:msg.time})});
-    if(row&&row[0])msg._sbid=row[0].id;
+    if(row&&row[0]){msg._sbid=row[0].id;if(row[0].created_at)msg.created_at=row[0].created_at;}
   }catch(e){console.warn('msg save failed',e);}
 }
 async function vmDeleteMsg(sbid,localIdx){
@@ -1687,7 +1687,7 @@ function vmRenderMsgs(msgs){
     av.textContent=isEcho?'E':'A';
     const meta=document.createElement('span');
     meta.className='vm-msg-meta'+(isEcho?' ai-meta':'');
-    meta.textContent=m.time||'';
+    meta.textContent=m.created_at?_parseUTC(m.created_at).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}):(m.time||'');
     const txt=document.createElement('span');
     txt.className='vm-msg-text'+(isEcho?' ai-text':'');
     txt.textContent=m.content;
@@ -1702,7 +1702,7 @@ function vmAutosize(el){el.style.height='auto';el.style.height=Math.min(el.scrol
 function vmKeyDown(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();vmSend();}}
 async function vmAddAiMsg(text){
   const now=new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
-  const msg={role:'ai',content:text,time:now};
+  const msg={role:'ai',content:text,time:now,created_at:new Date().toISOString()};
   await vmInsertMsg(msg);
   vmRenderMsgs(_vmCache[viewEntryId]||[]);
 }
@@ -1711,7 +1711,7 @@ async function vmSend(){
   const txt=inp.value.trim();if(!txt)return;
   inp.value='';inp.style.height='auto';
   const now=new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
-  const msg={role:'user',content:txt,time:now};
+  const msg={role:'user',content:txt,time:now,created_at:new Date().toISOString()};
   await vmInsertMsg(msg);
   vmRenderMsgs(_vmCache[viewEntryId]||[]);
 }
@@ -2044,24 +2044,37 @@ if(window.visualViewport){
 //  NOTIFICATION
 // ══════════════════════════════════════════
 let _notifOpen=false;
+function _parseUTC(isoStr){
+  let s=isoStr.replace(' ','T');
+  if(!s.endsWith('Z')&&!s.match(/[+-]\d{2}:?\d{2}$/))s+='Z';
+  return new Date(s);
+}
 function formatNotifTs(isoStr){
-  const d=new Date(isoStr);
+  const d=_parseUTC(isoStr);
   const yy=String(d.getFullYear()).slice(2);
   return `${yy}.${d.getMonth()+1}.${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
+function notifGetClicked(){
+  try{const s=localStorage.getItem('tn-notif-clicked');return new Set(s?JSON.parse(s):[]);}catch{return new Set();}
+}
+function notifAddClicked(id){
+  const set=notifGetClicked();set.add(id);
+  try{localStorage.setItem('tn-notif-clicked',JSON.stringify([...set]));}catch{}
+}
 async function notifLoad(){
-  const readTs=localStorage.getItem('tn-notif-read')||'1970-01-01T00:00:00.000Z';
   try{
-    const msgs=await sbQ('messages?or=(role.eq.assistant,role.eq.ai)&order=created_at.desc&select=entry_id,created_at');
+    const msgs=await sbQ('messages?or=(role.eq.assistant,role.eq.ai)&order=created_at.desc&select=id,entry_id,created_at&limit=5');
     const entryMap=Object.fromEntries(entries.map(e=>[e.id,e]));
-    return (msgs||[]).map(m=>({...m,entry:entryMap[m.entry_id]||null,isRead:m.created_at<=readTs}));
+    const clicked=notifGetClicked();
+    return (msgs||[]).map(m=>({...m,entry:entryMap[m.entry_id]||null,isRead:clicked.has(m.id)}));
   }catch{return[];}
 }
 async function notifCheckUnread(){
-  const readTs=localStorage.getItem('tn-notif-read')||'1970-01-01T00:00:00.000Z';
   try{
-    const msgs=await sbQ('messages?or=(role.eq.assistant,role.eq.ai)&created_at=gt.'+encodeURIComponent(readTs)+'&select=id&limit=1');
-    document.getElementById('notif-dot').style.display=(msgs&&msgs.length)?'block':'none';
+    const msgs=await sbQ('messages?or=(role.eq.assistant,role.eq.ai)&order=created_at.desc&select=id&limit=5');
+    if(!msgs||!msgs.length){document.getElementById('notif-dot').style.display='none';return;}
+    const clicked=notifGetClicked();
+    document.getElementById('notif-dot').style.display=msgs.some(m=>!clicked.has(m.id))?'block':'none';
   }catch{}
 }
 async function notifToggle(ev){
@@ -2069,8 +2082,6 @@ async function notifToggle(ev){
   const panel=document.getElementById('notif-panel');
   if(_notifOpen){panel.classList.remove('open');_notifOpen=false;return;}
   _notifOpen=true;panel.classList.add('open');
-  localStorage.setItem('tn-notif-read',new Date().toISOString());
-  document.getElementById('notif-dot').style.display='none';
   const list=document.getElementById('notif-list');
   list.innerHTML='<div class="notif-empty" style="opacity:0.5;">· · ·</div>';
   const items=await notifLoad();
@@ -2079,27 +2090,24 @@ async function notifToggle(ev){
 function _renderNotifList(items,list){
   if(!items.length){list.innerHTML='<div class="notif-empty">暂无 Echo 留言</div>';return;}
   list.innerHTML='';
-  const unread=items.filter(x=>!x.isRead);
-  const read=items.filter(x=>x.isRead);
-  function addSection(label,arr,dimmed){
-    if(!arr.length)return;
-    const title=document.createElement('div');title.className='notif-section-title';title.textContent=label;list.appendChild(title);
-    arr.forEach(item=>{
-      const row=document.createElement('div');row.className='notif-row';
-      if(dimmed)row.style.opacity='0.4';
-      const entryDate=item.entry?fdShort(item.entry.date):'—';
-      const left=document.createElement('span');left.className='notif-row-left';left.textContent=`𐙚 · ${entryDate}`;
-      const right=document.createElement('span');right.className='notif-row-time';right.textContent=formatNotifTs(item.created_at);
-      row.appendChild(left);row.appendChild(right);
-      row.onclick=()=>{
-        document.getElementById('notif-panel').classList.remove('open');_notifOpen=false;
-        if(item.entry){openViewMode(item.entry);setTimeout(()=>vmOpen(),300);}
-      };
-      list.appendChild(row);
-    });
-  }
-  addSection('未 读',unread,false);
-  addSection('已 读',read,true);
+  items.forEach(item=>{
+    const row=document.createElement('div');row.className='notif-row';
+    if(item.isRead)row.style.opacity='0.45';
+    const entryDate=item.entry?fdShort(item.entry.date):'—';
+    const left=document.createElement('span');left.className='notif-row-left';left.textContent=`𐙚 · ${entryDate}`;
+    const right=document.createElement('span');right.className='notif-row-time';
+    right.textContent=formatNotifTs(item.created_at);
+    if(item.isRead){const ck=document.createElement('span');ck.style.cssText='font-size:12px;margin-left:2px;';ck.textContent=' ✓';right.appendChild(ck);}
+    row.appendChild(left);row.appendChild(right);
+    row.onclick=()=>{
+      notifAddClicked(item.id);
+      const clicked=notifGetClicked();
+      if(items.every(x=>clicked.has(x.id)))document.getElementById('notif-dot').style.display='none';
+      document.getElementById('notif-panel').classList.remove('open');_notifOpen=false;
+      if(item.entry){openViewMode(item.entry);setTimeout(()=>vmOpen(),300);}
+    };
+    list.appendChild(row);
+  });
 }
 document.addEventListener('click',e=>{
   if(_notifOpen&&!document.getElementById('notif-panel').contains(e.target)&&!document.getElementById('btn-notif').contains(e.target)){
