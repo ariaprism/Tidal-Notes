@@ -15,8 +15,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-body{font-family:'Lora','Noto Serif SC',serif;background:#f0e8d8;height:100dvh;overflow:hidden;display:flex;flex-direction:column;}
+html{height:100%;background:#f0e8d8;}
+body{font-family:'Lora','Noto Serif SC',serif;background:#f0e8d8;height:var(--app-height,100dvh);min-height:0;overflow:hidden;display:flex;flex-direction:column;}
 :root{
+  --app-height:100dvh;
   --br:#6b4a2a;
   --li:#fdf8f0;
   --bd:#c0a070;
@@ -25,7 +27,7 @@ body{font-family:'Lora','Noto Serif SC',serif;background:#f0e8d8;height:100dvh;o
   --hd:#e8d8c0;
   --ca:#ede0ca;
 }
-.view{display:none;flex-direction:column;height:100%;overflow:hidden;}
+.view{display:none;flex-direction:column;height:var(--app-height,100dvh);min-height:0;overflow:hidden;}
 .view.active{display:flex;animation:vIn .18s ease;}
 @keyframes vIn{from{opacity:0}to{opacity:1}}
 /* ── TOPBAR (shared layout/vv) ── */
@@ -67,6 +69,10 @@ body{font-family:'Lora','Noto Serif SC',serif;background:#f0e8d8;height:100dvh;o
 .app-sub-line{display:flex;align-items:center;gap:6px;}
 .app-sub{font-size:10px;color:var(--mu);letter-spacing:.06em;white-space:nowrap;}
 .app-cnt{font-size:10px;color:var(--mu);white-space:nowrap;}
+.sync-status{background:none;border:0;padding:0;font-family:inherit;font-size:10px;color:var(--mu);opacity:.65;cursor:default;white-space:nowrap;letter-spacing:normal;text-transform:none;}
+.sync-status.can-retry{cursor:pointer;opacity:1;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px;}
+.sync-status.saving,.sync-status.loading{opacity:.85;}
+.sync-status.error{color:#a34c3d;}
 .hdr-btns{display:flex;gap:5px;flex-shrink:0;}
 .btn-sm{background:none;border:1px solid var(--bd);border-radius:3px;padding:5px 8px;cursor:pointer;color:var(--mu);font-size:11px;font-family:'Lora',serif;white-space:nowrap;}
 /* ── CALENDAR ── */
@@ -381,7 +387,8 @@ input:checked+.sli:before{transform:translateX(16px);}
 }
 /* 每条留言是一行信纸 */
 .vm-msg-row{
-  display:flex;align-items:baseline;gap:8px;
+  display:flex;align-items:flex-start;gap:8px;
+  flex:0 0 auto;
   min-height:28px;padding:5px 0;
   position:relative;
 }
@@ -405,7 +412,7 @@ input:checked+.sli:before{transform:translateX(16px);}
 .vm-msg-text{
   font-family:'Lora','Noto Serif SC',serif;
   font-size:13.5px;line-height:28px;
-  color:var(--tx);word-break:break-word;flex:1;
+  color:var(--tx);word-break:break-word;overflow-wrap:anywhere;flex:1;min-width:0;display:block;
   white-space:pre-wrap;
 }
 .vm-msg-text.ai-text{color:#5a3018;font-style:italic;}
@@ -443,7 +450,7 @@ input:checked+.sli:before{transform:translateX(16px);}
 .bg-ivory{background-color:#fdf8f0 !important;background-image:none !important;}
 .bg-aged {background-color:#f0e0c0 !important;background-image:none !important;}
 .bg-lined{background-color:#fdf8f0 !important;background-image:repeating-linear-gradient(transparent,transparent 27px,rgba(200,184,154,0.55) 28px) !important;background-origin:border-box !important;background-clip:border-box !important;}
-.bg-grid {background-color:#fdf8f0 !important;background-image:linear-gradient(rgba(200,184,154,0.45) 1px,transparent 1px),linear-gradient(90deg,rgba(200,184,154,0.45) 1px,transparent 1px) !important;background-size:28px 28px !important;background-origin:border-box !important;background-clip:border-box !important;background-position:0 0 !important;}
+.bg-grid {background-color:#fdf8f0 !important;background-image:linear-gradient(rgba(200,184,154,0.28) .5px,transparent .5px),linear-gradient(90deg,rgba(200,184,154,0.28) .5px,transparent .5px) !important;background-size:28px 28px !important;background-origin:border-box !important;background-clip:border-box !important;background-position:0 0 !important;}
 .bg-dots {background-color:#fdf8f0 !important;background-image:radial-gradient(circle,rgba(180,155,115,0.55) 1.2px,transparent 1.2px) !important;background-size:20px 20px !important;}
 .bg-kraft{background-color:#c8a060 !important;background-image:none !important;}
 /* ── SETTINGS VIEW ── */
@@ -453,7 +460,7 @@ input:checked+.sli:before{transform:translateX(16px);}
 .settings-title{font-family:'Cormorant Garamond',serif;font-size:19px;font-style:italic;color:var(--tx);flex:1;text-align:center;}
 .settings-body{flex:1;overflow-y:auto;padding:20px 18px 40px;}
 .settings-section{margin-bottom:28px;}
-.settings-section-title{font-family:'Cormorant Garamond',serif;font-size:13px;letter-spacing:.12em;color:var(--mu);text-transform:uppercase;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--bd);}
+.settings-section-title{display:flex;align-items:center;gap:6px;font-family:'Cormorant Garamond',serif;font-size:13px;letter-spacing:.12em;color:var(--mu);text-transform:uppercase;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--bd);}
 .settings-row{display:flex;gap:10px;flex-wrap:wrap;}
 .settings-btn{flex:1;min-width:120px;padding:11px 14px;background:var(--hd);border:1px solid var(--bd);border-radius:8px;font-family:'Cormorant Garamond',serif;font-size:16px;font-style:italic;color:var(--tx);cursor:pointer;text-align:center;transition:all .15s;}
 .settings-btn:active{background:var(--bd);}
@@ -529,7 +536,7 @@ input:checked+.sli:before{transform:translateX(16px);}
 .vv-bg-sw{width:38px;height:38px;border-radius:7px;border:2px solid transparent;cursor:pointer;transition:all .15s;position:relative;}
 .vv-bg-sw.on{border-color:var(--br);transform:scale(1.1);}
 .vv-bg-sw[data-tex="lined"]{background:repeating-linear-gradient(transparent,transparent 8px,rgba(160,130,90,0.35) 9px),#fdf8f0;}
-.vv-bg-sw[data-tex="grid"]{background:linear-gradient(rgba(160,130,90,0.3) 1px,transparent 1px),linear-gradient(90deg,rgba(160,130,90,0.3) 1px,transparent 1px),#fdf8f0;background-size:9px 9px;}
+.vv-bg-sw[data-tex="grid"]{background:linear-gradient(rgba(160,130,90,0.23) .5px,transparent .5px),linear-gradient(90deg,rgba(160,130,90,0.23) .5px,transparent .5px),#fdf8f0;background-size:9px 9px;}
 .vv-bg-sw[data-tex="dots"]{background:radial-gradient(circle,rgba(140,110,70,0.45) 1px,transparent 1px),#fdf8f0;background-size:7px 7px;}
 
 /* ── FOCUS ACCESSIBILITY ── */
@@ -546,6 +553,7 @@ textarea:focus-visible{outline:none;}
 .notif-row{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;cursor:pointer;border-bottom:1px solid rgba(192,160,112,0.1);transition:background .12s;}
 .notif-row:last-child{border-bottom:none;}
 .notif-row:hover{background:var(--ca);}
+.notif-row.is-read{opacity:.45;}
 .notif-row-left{font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--tx);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .notif-row-time{font-size:10px;color:var(--mu);white-space:nowrap;margin-left:8px;flex-shrink:0;}
 .notif-empty{font-family:'Cormorant Garamond',serif;font-size:13px;font-style:italic;color:var(--mu);text-align:center;padding:18px 12px;}
@@ -648,7 +656,10 @@ textarea:focus-visible{outline:none;}
   </div>
   <div class="settings-body">
     <div class="settings-section">
-      <div class="settings-section-title">数 据</div>
+      <div class="settings-section-title">
+        <span>数 据</span>
+        <button class="sync-status loading" id="sync-status" type="button" onclick="retryLoadEntries()" title="云端同步状态">· 同步中…</button>
+      </div>
       <div class="settings-row">
         <button class="settings-btn" onclick="doExport()">↗ 备份 JSON</button>
         <button class="settings-btn" onclick="document.getElementById('imp').click()">↙ 导入 JSON</button>
@@ -730,7 +741,7 @@ textarea:focus-visible{outline:none;}
       <span class="topbar-sub" style="font-size:13px;margin-top:3px;">make it beautiful, then let it go</span>
     </div>
     <button class="btn-star" id="bst2" onclick="togStar()">☆</button>
-    <button class="btn-save" onclick="saveE()">保存 ✓</button>
+    <button class="btn-save" id="btn-save-entry" onclick="saveE()">保存 ✓</button>
   </div>
   <div class="lprev">
     <div class="lprev-inner">
@@ -900,8 +911,8 @@ const RATS=[
   {l:'4:3',  id:'r43',  w:300,h:225},
   {l:'9:16', id:'r916', w:200,h:356},
 ];
-const DEFAULT_CATS=['泡泡','47','漂流瓶','Saudade','锚点','语言之外','₍ᐢ..ᐢ₎✉️'];
-const CAT_COLORS={'泡泡':'#7a8ba0','47':'#8b7a4a','漂流瓶':'#4a7a8b','Saudade':'#7a4a8b','锚点':'#4a8b7a','语言之外':'#8b6b4a','₍ᐢ..ᐢ₎✉️':'#7a4a6b'};
+const DEFAULT_CATS=['泡泡','47','漂流瓶','Saudade','锚点','语言之外','warmth','₍ᐢ..ᐢ₎✉️'];
+const CAT_COLORS={'泡泡':'#7a8ba0','47':'#8b7a4a','漂流瓶':'#4a7a8b','Saudade':'#7a4a8b','锚点':'#4a8b7a','语言之外':'#8b6b4a','warmth':'#a06f55','₍ᐢ..ᐢ₎✉️':'#7a4a6b'};
 const PRESETS=['Echo','Aria','Fox & Goldfish'];
 const CAT_TAGLINES={
   '全部':      'everything the tide brought back',
@@ -912,6 +923,7 @@ const CAT_TAGLINES={
   'Saudade':   'thinking of you in a language that has no translation',
   '锚点':      'this is where we stood still',
   '语言之外':  'in the space where language cannot follow',
+  'warmth':    'say it again, slower.',
   '₍ᐢ..ᐢ₎✉️': 'letters sent to the center of a lake',
 };
 // ══════════════════════════════════════════
@@ -939,10 +951,53 @@ function defStyle(){return{fontFamily:"'Cormorant Garamond','Noto Serif SC',seri
 const SB_URL='https://nhptfkluxwbssxkovfad.supabase.co';
 const SB_KEY='sb_publishable_QxBNA1blQmE0B3sU1Pz4Xw_9jK-p0qS';
 function sbH(extra={}){return{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json',...extra};}
-async function sbQ(path,opts={}){
-  const r=await fetch(SB_URL+'/rest/v1/'+path,{headers:sbH(),...opts});
-  if(!r.ok){const t=await r.text();console.error('SB error:',t);throw new Error(t);}
-  const t=await r.text();return t?JSON.parse(t):null;
+let _syncState='loading',_loadInFlight=null,_lastCloudLoad=0,_entrySyncSeq=0;
+const _entrySyncQueues=new Map(),_entryLatestSeq=new Map();
+function setSyncState(state,label){
+  _syncState=state;
+  const el=document.getElementById('sync-status');if(!el)return;
+  const labels={loading:'· 同步中…',saving:'· 保存中…',synced:'· 已同步',error:'· 重试同步'};
+  el.textContent=label||labels[state]||'';
+  el.className='sync-status '+state+(state==='error'?' can-retry':'');
+  el.title=state==='error'?'云端连接失败，点击重试':'云端同步状态';
+}
+function cacheEntries(){try{localStorage.setItem('tn5',JSON.stringify(entries));}catch(e){console.warn('entry cache failed',e);}}
+function readEntryCache(){
+  try{const s=localStorage.getItem('tn5')||localStorage.getItem('tn4');return s?JSON.parse(s):[];}catch(e){return[];}
+}
+const PENDING_ENTRY_KEY='tn-pending-entry-ids',PENDING_DELETE_KEY='tn-pending-delete-ids';
+function readPendingIds(key){try{return new Set(JSON.parse(localStorage.getItem(key)||'[]'));}catch(e){return new Set();}}
+function writePendingIds(key,ids){try{localStorage.setItem(key,JSON.stringify([...ids]));}catch(e){}}
+function markPendingEntry(ent){const ids=readPendingIds(PENDING_ENTRY_KEY);ids.add(ent.id);writePendingIds(PENDING_ENTRY_KEY,ids);}
+function clearPendingEntry(id){const ids=readPendingIds(PENDING_ENTRY_KEY);ids.delete(id);writePendingIds(PENDING_ENTRY_KEY,ids);}
+function markPendingDelete(id){
+  clearPendingEntry(id);
+  const ids=readPendingIds(PENDING_DELETE_KEY);ids.add(id);writePendingIds(PENDING_DELETE_KEY,ids);
+}
+function clearPendingDelete(id){const ids=readPendingIds(PENDING_DELETE_KEY);ids.delete(id);writePendingIds(PENDING_DELETE_KEY,ids);}
+async function sbQ(path,opts={},cfg={}){
+  const method=(opts.method||'GET').toUpperCase();
+  const retries=cfg.retries??(method==='GET'?2:0);
+  const timeout=cfg.timeout||10000;
+  const {signal:_unusedSignal,...fetchOpts}=opts;
+  let lastErr;
+  for(let attempt=0;attempt<=retries;attempt++){
+    const ctl=new AbortController();
+    const timer=setTimeout(()=>ctl.abort(),timeout);
+    try{
+      const r=await fetch(SB_URL+'/rest/v1/'+path,{headers:sbH(),...fetchOpts,signal:ctl.signal});
+      const t=await r.text();
+      if(!r.ok){const err=new Error(t||('HTTP '+r.status));err.status=r.status;throw err;}
+      return t?JSON.parse(t):null;
+    }catch(err){
+      lastErr=err;
+      const retryable=err.name==='AbortError'||!err.status||err.status===408||err.status===429||err.status>=500;
+      if(!retryable||attempt===retries)break;
+      await new Promise(resolve=>setTimeout(resolve,350*Math.pow(2,attempt)));
+    }finally{clearTimeout(timer);}
+  }
+  console.error('SB request failed:',lastErr);
+  throw lastErr;
 }
 
 // ── ENTRIES ──
@@ -950,29 +1005,96 @@ async function sa(){
   // save all entries (upsert batch)
   if(!entries.length)return;
   const rows=entries.map(e=>({id:e.id,date:e.date||'',content:e.content||'',category:e.category||null,starred:!!e.starred,style:e.style||null}));
-  await sbQ('entries?on_conflict=id',{method:'POST',headers:sbH({'Prefer':'resolution=merge-duplicates'}),body:JSON.stringify(rows)});
+  await sbQ('entries?on_conflict=id',{method:'POST',headers:sbH({'Prefer':'resolution=merge-duplicates'}),body:JSON.stringify(rows)},{retries:1});
 }
 async function saOne(ent){
   const row={id:ent.id,date:ent.date||'',content:ent.content||'',category:ent.category||null,starred:!!ent.starred,style:ent.style||null};
-  await sbQ('entries?on_conflict=id',{method:'POST',headers:sbH({'Prefer':'resolution=merge-duplicates'}),body:JSON.stringify(row)});
+  await sbQ('entries?on_conflict=id',{method:'POST',headers:sbH({'Prefer':'resolution=merge-duplicates'}),body:JSON.stringify(row)},{retries:2});
+}
+async function syncEntry(ent,{silentError=false}={}){
+  cacheEntries();
+  markPendingEntry(ent);
+  const snapshot=JSON.parse(JSON.stringify(ent));
+  const seq=++_entrySyncSeq;
+  _entryLatestSeq.set(ent.id,seq);
+  setSyncState('saving');
+  const previous=_entrySyncQueues.get(ent.id)||Promise.resolve();
+  const task=previous.catch(()=>{}).then(async()=>{
+    try{
+      await saOne(snapshot);
+      if(_entryLatestSeq.get(ent.id)===seq){
+        clearPendingEntry(ent.id);
+        setSyncState('synced');
+      }
+      return true;
+    }catch(err){
+      if(_entryLatestSeq.get(ent.id)===seq){
+        setSyncState('error');
+        if(!silentError)showToast('已保存在本机，云端同步失败');
+      }
+      return false;
+    }
+  });
+  _entrySyncQueues.set(ent.id,task);
+  const ok=await task;
+  if(_entrySyncQueues.get(ent.id)===task)_entrySyncQueues.delete(ent.id);
+  return ok;
 }
 async function sbDelEntry(id){
-  await sbQ('entries?id=eq.'+encodeURIComponent(id),{method:'DELETE'});
+  await sbQ('entries?id=eq.'+encodeURIComponent(id),{method:'DELETE'},{retries:1});
 }
-async function la(){
-  try{
-    const rows=await sbQ('entries?select=*&order=date.desc,created_at.desc');
-    if(rows&&rows.length){entries=rows;}
-    else{
-      // fallback: try localStorage migration
-      const s=localStorage.getItem('tn5')||localStorage.getItem('tn4');
-      if(s){entries=JSON.parse(s);if(entries.length){showToast('正在同步旧数据…');await sa();showToast('同步完成 ✓');}}
-    }
-  }catch(err){
-    console.warn('Supabase load failed, using localStorage',err);
-    try{const s=localStorage.getItem('tn5');if(s)entries=JSON.parse(s);}catch(e){}
+async function flushPendingChanges(){
+  await Promise.all([..._entrySyncQueues.values()]);
+  for(const id of readPendingIds(PENDING_DELETE_KEY)){
+    await sbDelEntry(id);clearPendingDelete(id);
   }
-  try{const c=localStorage.getItem('tn-cats');if(c)customCats=JSON.parse(c);}catch(e){}
+  const source=entries.length?entries:readEntryCache();
+  const byId=new Map(source.map(e=>[e.id,e]));
+  for(const id of readPendingIds(PENDING_ENTRY_KEY)){
+    const ent=byId.get(id);
+    if(!ent){clearPendingEntry(id);continue;}
+    await saOne(ent);clearPendingEntry(id);
+  }
+}
+async function la({announce=true}={}){
+  if(_loadInFlight)return _loadInFlight;
+  _loadInFlight=(async()=>{
+    if(announce)setSyncState('loading');
+    try{
+      await flushPendingChanges();
+      const rows=await sbQ('entries?select=*&order=date.desc,created_at.desc');
+      if(rows&&rows.length){entries=rows;cacheEntries();}
+      else{
+        const cached=readEntryCache();
+        entries=Array.isArray(cached)?cached:[];
+        if(entries.length){
+          showToast('正在同步旧数据…');
+          await sa();
+          showToast('同步完成 ✓');
+        }
+      }
+      _lastCloudLoad=Date.now();
+      setSyncState('synced');
+      return true;
+    }catch(err){
+      console.warn('Supabase load failed, using local cache',err);
+      const cached=readEntryCache();
+      entries=Array.isArray(cached)?cached:[];
+      setSyncState('error');
+      if(announce)showToast(entries.length?'云端连接失败，已显示本地缓存':'加载失败，点“重试同步”再试');
+      return false;
+    }finally{
+      try{const c=localStorage.getItem('tn-cats');if(c)customCats=JSON.parse(c);}catch(e){}
+      _loadInFlight=null;
+    }
+  })();
+  return _loadInFlight;
+}
+async function retryLoadEntries(){
+  if(_loadInFlight)return;
+  const ok=await la();
+  renderCal();renderDay();
+  if(ok)notifCheckUnread();
 }
 function saveCats(){try{localStorage.setItem('tn-cats',JSON.stringify(customCats));}catch(e){}}
 let _draftTimer=null;
@@ -992,17 +1114,27 @@ function clearDraft(){try{localStorage.removeItem('tn-draft');}catch(e){}}
 //  HISTORY / BACK BUTTON
 // ══════════════════════════════════════════
 let _prevView='vc'; // track where we came from
+let _viewportRaf=0;
+function fitViewport(){
+  _viewportRaf=0;
+  const h=Math.round(window.visualViewport?.height||window.innerHeight);
+  document.documentElement.style.setProperty('--app-height',h+'px');
+}
+function scheduleViewportFit(){
+  if(_viewportRaf)return;
+  _viewportRaf=requestAnimationFrame(fitViewport);
+}
 function showView(id){
   _prevView=document.querySelector('.view.active')?.id||'vc';
-  document.querySelectorAll('.view').forEach(v=>{v.classList.remove('active');v.style.height='';});
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   const _sv=document.getElementById(id);_sv.classList.add('active');
-  if(window.visualViewport)_sv.style.height=window.visualViewport.height+'px';
+  scheduleViewportFit();
   if(id!=='vc') history.pushState({view:id,prev:_prevView},'');
 }
 function showViewDirect(id){
-  document.querySelectorAll('.view').forEach(v=>{v.classList.remove('active');v.style.height='';});
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   const _svd=document.getElementById(id);_svd.classList.add('active');
-  if(window.visualViewport)_svd.style.height=window.visualViewport.height+'px';
+  scheduleViewportFit();
 }
 window.addEventListener('popstate',e=>{
   const cur=document.querySelector('.view.active');
@@ -1093,7 +1225,7 @@ function renderSBList(){
     const ebgColor=(BGS.find(b=>b.id===ebg)||BGS[0]).c;
     let ebgImg='none';
     if(ebg==='lined')ebgImg='repeating-linear-gradient(transparent,transparent 17px,rgba(180,155,115,0.4) 18px)';
-    else if(ebg==='grid')ebgImg='linear-gradient(rgba(180,155,115,0.35) 1px,transparent 1px),linear-gradient(90deg,rgba(180,155,115,0.35) 1px,transparent 1px)';
+    else if(ebg==='grid')ebgImg='linear-gradient(rgba(180,155,115,0.24) .5px,transparent .5px),linear-gradient(90deg,rgba(180,155,115,0.24) .5px,transparent .5px)';
     else if(ebg==='dots')ebgImg='radial-gradient(circle,rgba(165,140,100,0.45) 1px,transparent 1px)';
     const ebgSize=ebg==='grid'?'18px 18px':ebg==='dots'?'13px 13px':'';
     d.style.cssText+=`background-color:${ebgColor};background-image:${ebgImg};${ebgSize?'background-size:'+ebgSize+';':''}`;
@@ -1140,7 +1272,7 @@ function hideCtxMenu(){
 }
 function ctxStar(){
   const e=entries.find(x=>x.id===_ctxId);
-  if(e){e.starred=!e.starred;sa();renderDay();}
+  if(e){e.starred=!e.starred;syncEntry(e);renderDay();}
   hideCtxMenu();
 }
 function ctxDel(){
@@ -1187,7 +1319,7 @@ function mkCard(e){
   const d=document.createElement('div');d.className='ecard';
   d.style.backgroundColor=bgColor;
   if(bgKey==='lined')d.style.backgroundImage='repeating-linear-gradient(transparent,transparent 20px,rgba(180,155,115,0.38) 21px)';
-  else if(bgKey==='grid'){d.style.backgroundImage='linear-gradient(rgba(180,155,115,0.32) 1px,transparent 1px),linear-gradient(90deg,rgba(180,155,115,0.32) 1px,transparent 1px)';d.style.backgroundSize='20px 20px';}
+  else if(bgKey==='grid'){d.style.backgroundImage='linear-gradient(rgba(180,155,115,0.22) .5px,transparent .5px),linear-gradient(90deg,rgba(180,155,115,0.22) .5px,transparent .5px)';d.style.backgroundSize='20px 20px';}
   else if(bgKey==='dots'){d.style.backgroundImage='radial-gradient(circle,rgba(165,140,100,0.42) 1px,transparent 1px)';d.style.backgroundSize='14px 14px';}
   if(e.style?.bgImage)d.style.cssText+=';background:#ede0ca;background-image:none;';
   d.innerHTML=`<div class="ecard-top"><div class="ecard-date" style="color:${tc}">${fd(e.date)}</div>
@@ -1220,7 +1352,7 @@ function openViewMode(e){
     if(bgKey==='lined'){
       wrap.style.backgroundImage='repeating-linear-gradient(transparent,transparent 27px,rgba(200,184,154,0.5) 28px)';
     } else if(bgKey==='grid'){
-      wrap.style.backgroundImage='linear-gradient(rgba(200,184,154,0.4) 1px,transparent 1px),linear-gradient(90deg,rgba(200,184,154,0.4) 1px,transparent 1px)';
+      wrap.style.backgroundImage='linear-gradient(rgba(200,184,154,0.26) .5px,transparent .5px),linear-gradient(90deg,rgba(200,184,154,0.26) .5px,transparent .5px)';
       wrap.style.backgroundSize='28px 28px';
     } else if(bgKey==='dots'){
       wrap.style.backgroundImage='radial-gradient(circle,rgba(180,155,115,0.5) 1.2px,transparent 1.2px)';
@@ -1259,7 +1391,7 @@ function togStarView(){
   const e=entries.find(x=>x.id===viewEntryId);if(!e)return;
   e.starred=!e.starred;
   const _vvs=document.getElementById('vv-star');if(_vvs)_vvs.textContent=e.starred?'⭐':'☆';
-  sa();
+  syncEntry(e);
 }
 function vvEdit(){const e=entries.find(x=>x.id===viewEntryId);if(e)openE(e,false);}
 // ══════════════════════════════════════════
@@ -1308,7 +1440,7 @@ function newE(){
   }
   openE(e,true);
 }
-function autoSaveEntry(){
+async function autoSaveEntry(){
   const content=document.getElementById('ec').value.trim();
   const date=document.getElementById('ed').value;
   if(!content&&!entries.find(e=>e.id===editId))return;
@@ -1316,7 +1448,8 @@ function autoSaveEntry(){
   const ent={id:editId,date,content:document.getElementById('ec').value,starred:_star,category:_cat,style:{...existingStyle}};
   const i=entries.findIndex(e=>e.id===editId);
   if(i>=0)entries[i]=ent;else if(content)entries.push(ent);
-  saOne(ent).catch(()=>{}); clearDraft();
+  const ok=await syncEntry(ent);
+  if(ok)clearDraft();
 }
 function writeBack(){autoSaveEntry();showViewDirect('vc');renderCal();renderDay();}
 function saveDraftAndBack(){autoSaveEntry();showViewDirect('vc');renderCal();renderDay();}
@@ -1335,7 +1468,9 @@ function goLayout(){
   if(_cat==='漂流瓶'&&!entries.find(e=>e.id===editId)){
     document.getElementById('tgc').checked=false;
   }
-  upP();showView('vl');
+  showView('vl');
+  const scroller=document.querySelector('#vl .lscroll');if(scroller)scroller.scrollTop=0;
+  requestAnimationFrame(()=>{fitViewport();upP();});
 }
 // ══════════════════════════════════════════
 //  OPEN ENTRY
@@ -1371,7 +1506,11 @@ function confirmDel(){
   hideDelModal();
   const id=editId;
   entries=entries.filter(e=>e.id!==id);
-  sbDelEntry(id).catch(()=>{});
+  cacheEntries();markPendingDelete(id);setSyncState('saving');
+  const pendingSync=_entrySyncQueues.get(id)||Promise.resolve();
+  pendingSync.catch(()=>{}).then(()=>sbDelEntry(id)).then(()=>{
+    clearPendingDelete(id);_entryLatestSeq.delete(id);setSyncState('synced');
+  }).catch(()=>{setSyncState('error');showToast('本机已删除，云端删除失败');});
   clearDraft();
   showViewDirect('vc');renderCal();renderDay();
 }
@@ -1518,7 +1657,9 @@ function upP(){
 // ══════════════════════════════════════════
 //  SAVE
 // ══════════════════════════════════════════
-function saveE(){
+async function saveE(){
+  const btn=document.getElementById('btn-save-entry');
+  if(btn.disabled)return;
   const sty={
     fontFamily:_f,fontSize:+document.getElementById('esz').value,align:_al,
     lineHeight:+document.getElementById('elh').value,bg:_bg,bgImage:_bgImg,bgImageBright:_bgImgBright,ratio:_rat,
@@ -1531,7 +1672,12 @@ function saveE(){
   const ent={id:editId,date:document.getElementById('ed').value,content:document.getElementById('ec').value,starred:_star,category:_cat,style:sty};
   const i=entries.findIndex(e=>e.id===editId);
   if(i>=0)entries[i]=ent;else entries.push(ent);
-  sa();clearDraft();
+  cacheEntries();
+  btn.disabled=true;btn.textContent='保存中…';
+  const ok=await syncEntry(ent,{silentError:true});
+  btn.disabled=false;btn.textContent='保存 ✓';
+  if(!ok){showToast('已保存在本机，云端失败，请点“重试同步”');return;}
+  clearDraft();showToast('已保存并同步 ✓');
   showViewDirect('vc');renderCal();renderDay();
 }
 // ══════════════════════════════════════════
@@ -1572,13 +1718,15 @@ function doImport(inp){
   const f=inp.files[0];if(!f)return;
   const r=new FileReader();
   r.onload=async ev=>{
-    try{const d=JSON.parse(ev.target.result);if(!Array.isArray(d))throw 0;
-      const m=Object.fromEntries(entries.map(e=>[e.id,e]));
-      d.forEach(e=>{m[e.id]=e;});entries=Object.values(m);
-      showToast('正在同步到云端…');
-      await sa();
-      renderCal();renderDay();showToast(`已导入并同步 ${d.length} 条 ✓`);
-    }catch(e){alert('文件格式有误');}
+    let d;
+    try{d=JSON.parse(ev.target.result);if(!Array.isArray(d))throw 0;}catch(e){alert('文件格式有误');return;}
+    const m=Object.fromEntries(entries.map(e=>[e.id,e]));
+    d.forEach(e=>{m[e.id]=e;});entries=Object.values(m);cacheEntries();
+    d.forEach(markPendingEntry);
+    renderCal();renderDay();setSyncState('saving');showToast('正在同步到云端…');
+    try{
+      await sa();d.forEach(e=>clearPendingEntry(e.id));setSyncState('synced');showToast(`已导入并同步 ${d.length} 条 ✓`);
+    }catch(e){setSyncState('error');showToast(`已导入本机，云端同步失败`);}
   };r.readAsText(f);inp.value='';
 }
 // ══════════════════════════════════════════
@@ -1641,7 +1789,7 @@ async function vmOpen(){
     } else {
       prev.style.background=bgColor;
       if(bgKey==='lined'){prev.style.backgroundImage='repeating-linear-gradient(transparent,transparent 27px,rgba(200,184,154,0.45) 28px)';}
-      else if(bgKey==='grid'){prev.style.backgroundImage='linear-gradient(rgba(200,184,154,0.38) 1px,transparent 1px),linear-gradient(90deg,rgba(200,184,154,0.38) 1px,transparent 1px)';prev.style.backgroundSize='24px 24px';}
+      else if(bgKey==='grid'){prev.style.backgroundImage='linear-gradient(rgba(200,184,154,0.25) .5px,transparent .5px),linear-gradient(90deg,rgba(200,184,154,0.25) .5px,transparent .5px)';prev.style.backgroundSize='24px 24px';}
       else if(bgKey==='dots'){prev.style.backgroundImage='radial-gradient(circle,rgba(180,155,115,0.48) 1.2px,transparent 1.2px)';prev.style.backgroundSize='18px 18px';}
       else{prev.style.backgroundImage='none';}
     }
@@ -1810,7 +1958,7 @@ async function renderWall(){
     } else {
       bgStyle=`background:${bgColor};`;
       if(bgKey==='lined')bgStyle+=`background-image:repeating-linear-gradient(transparent,transparent 22px,rgba(200,184,154,0.4) 23px);`;
-      else if(bgKey==='grid')bgStyle+=`background-image:linear-gradient(rgba(200,184,154,0.35) 1px,transparent 1px),linear-gradient(90deg,rgba(200,184,154,0.35) 1px,transparent 1px);background-size:22px 22px;`;
+      else if(bgKey==='grid')bgStyle+=`background-image:linear-gradient(rgba(200,184,154,0.24) .5px,transparent .5px),linear-gradient(90deg,rgba(200,184,154,0.24) .5px,transparent .5px);background-size:22px 22px;`;
       else if(bgKey==='dots')bgStyle+=`background-image:radial-gradient(circle,rgba(180,155,115,0.45) 1px,transparent 1px);background-size:16px 16px;`;
     }
     note.style.cssText=`left:${x}px;top:${y}px;width:${noteW}px;height:${noteH}px;overflow:hidden;transform:rotate(${rot}deg);${bgStyle}`;
@@ -1948,7 +2096,7 @@ function vvBgPanelClose(){
 function vvSetBgColor(colorOrNull){
   const e=entries.find(x=>x.id===viewEntryId);if(!e)return;
   e.style={...(e.style||defStyle()),vvBgColor:colorOrNull||null};
-  sa();
+  syncEntry(e);
   // 直接更新背景色，不重新渲染整个视图
   const _autoBg=(({ivory:'#b8a888',aged:'#9a7848',lined:'#b8a888',grid:'#b0a080',kraft:'#6a4828'})[(e.style.bg||'ivory')])||'#9a8868';
   document.getElementById('vv').style.background=colorOrNull||_autoBg;
@@ -2029,16 +2177,12 @@ function applyWallBg(){
   panel.style.setProperty('--panel-text',isDark?'rgba(255,255,255,0.7)':'rgba(60,40,20,0.7)');
 }
 
+fitViewport();
+window.addEventListener('resize',scheduleViewportFit);
+window.addEventListener('orientationchange',scheduleViewportFit);
 if(window.visualViewport){
-  const _vpFit=()=>{
-    const h=window.visualViewport.height+'px';
-    ['vm','write-view'].forEach(id=>{
-      const el=document.getElementById(id);
-      if(el&&el.style.display!=='none')el.style.height=h;
-    });
-  };
-  window.visualViewport.addEventListener('resize',_vpFit);
-  window.visualViewport.addEventListener('scroll',_vpFit);
+  window.visualViewport.addEventListener('resize',scheduleViewportFit);
+  window.visualViewport.addEventListener('scroll',scheduleViewportFit);
 }
 // ══════════════════════════════════════════
 //  NOTIFICATION
@@ -2054,27 +2198,50 @@ function formatNotifTs(isoStr){
   const yy=String(d.getFullYear()).slice(2);
   return `${yy}.${d.getMonth()+1}.${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
-function notifGetClicked(){
-  try{const s=localStorage.getItem('tn-notif-clicked');return new Set(s?JSON.parse(s):[]);}catch{return new Set();}
+const NOTIF_READ_KEY='tn-notif-read-at';
+const NOTIF_READ_TTL=3*24*60*60*1000;
+function notifGetReadTimes(){
+  let readTimes={};
+  try{
+    const saved=JSON.parse(localStorage.getItem(NOTIF_READ_KEY)||'{}');
+    if(saved&&typeof saved==='object'&&!Array.isArray(saved))readTimes=saved;
+  }catch{}
+  // Migrate the old clicked-ID list. Its original read time was not recorded,
+  // so the three-day window starts when this version first sees it.
+  try{
+    const legacy=JSON.parse(localStorage.getItem('tn-notif-clicked')||'[]');
+    if(Array.isArray(legacy)&&legacy.length){
+      const migratedAt=Date.now();
+      legacy.forEach(id=>{if(!readTimes[id])readTimes[id]=migratedAt;});
+      localStorage.setItem(NOTIF_READ_KEY,JSON.stringify(readTimes));
+      localStorage.removeItem('tn-notif-clicked');
+    }
+  }catch{}
+  return readTimes;
 }
-function notifAddClicked(id){
-  const set=notifGetClicked();set.add(id);
-  try{localStorage.setItem('tn-notif-clicked',JSON.stringify([...set]));}catch{}
+function notifMarkRead(id){
+  const readTimes=notifGetReadTimes();
+  if(!readTimes[id])readTimes[id]=Date.now();
+  try{localStorage.setItem(NOTIF_READ_KEY,JSON.stringify(readTimes));}catch{}
 }
 async function notifLoad(){
   try{
-    const msgs=await sbQ('messages?or=(role.eq.assistant,role.eq.ai)&order=created_at.desc&select=id,entry_id,created_at&limit=5');
+    const msgs=await sbQ('messages?or=(role.eq.assistant,role.eq.ai)&order=created_at.desc&select=id,entry_id,created_at');
     const entryMap=Object.fromEntries(entries.map(e=>[e.id,e]));
-    const clicked=notifGetClicked();
-    return (msgs||[]).map(m=>({...m,entry:entryMap[m.entry_id]||null,isRead:clicked.has(m.id)}));
+    const readTimes=notifGetReadTimes();
+    const now=Date.now();
+    return (msgs||[]).map(m=>{
+      const readAt=Number(readTimes[m.id])||0;
+      return {...m,entry:entryMap[m.entry_id]||null,isRead:!!readAt,readAt};
+    }).filter(m=>!m.isRead||now-m.readAt<NOTIF_READ_TTL);
   }catch{return[];}
 }
 async function notifCheckUnread(){
   try{
-    const msgs=await sbQ('messages?or=(role.eq.assistant,role.eq.ai)&order=created_at.desc&select=id&limit=5');
+    const msgs=await sbQ('messages?or=(role.eq.assistant,role.eq.ai)&select=id');
     if(!msgs||!msgs.length){document.getElementById('notif-dot').style.display='none';return;}
-    const clicked=notifGetClicked();
-    document.getElementById('notif-dot').style.display=msgs.some(m=>!clicked.has(m.id))?'block':'none';
+    const readTimes=notifGetReadTimes();
+    document.getElementById('notif-dot').style.display=msgs.some(m=>!readTimes[m.id])?'block':'none';
   }catch{}
 }
 async function notifToggle(ev){
@@ -2091,8 +2258,7 @@ function _renderNotifList(items,list){
   if(!items.length){list.innerHTML='<div class="notif-empty">暂无 Echo 留言</div>';return;}
   list.innerHTML='';
   items.forEach(item=>{
-    const row=document.createElement('div');row.className='notif-row';
-    if(item.isRead)row.style.opacity='0.45';
+    const row=document.createElement('div');row.className='notif-row'+(item.isRead?' is-read':'');
     const entryDate=item.entry?fdShort(item.entry.date):'—';
     const left=document.createElement('span');left.className='notif-row-left';left.textContent=`𐙚 · ${entryDate}`;
     const right=document.createElement('span');right.className='notif-row-time';
@@ -2100,9 +2266,8 @@ function _renderNotifList(items,list){
     if(item.isRead){const ck=document.createElement('span');ck.style.cssText='font-size:12px;margin-left:2px;';ck.textContent=' ✓';right.appendChild(ck);}
     row.appendChild(left);row.appendChild(right);
     row.onclick=()=>{
-      notifAddClicked(item.id);
-      const clicked=notifGetClicked();
-      if(items.every(x=>clicked.has(x.id)))document.getElementById('notif-dot').style.display='none';
+      notifMarkRead(item.id);
+      notifCheckUnread();
       document.getElementById('notif-panel').classList.remove('open');_notifOpen=false;
       if(item.entry){openViewMode(item.entry);setTimeout(()=>vmOpen(),300);}
     };
@@ -2114,7 +2279,14 @@ document.addEventListener('click',e=>{
     document.getElementById('notif-panel').classList.remove('open');_notifOpen=false;
   }
 });
-la().then(()=>{renderCal();renderDay();notifCheckUnread();}).catch(()=>{renderCal();renderDay();});
+window.addEventListener('offline',()=>setSyncState('error','· 当前离线'));
+window.addEventListener('online',()=>{if(_syncState==='error')retryLoadEntries();});
+document.addEventListener('visibilitychange',()=>{
+  const onCalendar=document.querySelector('.view.active')?.id==='vc';
+  if(!document.hidden&&onCalendar&&!_loadInFlight&&Date.now()-_lastCloudLoad>60000)retryLoadEntries();
+});
+document.getElementById('ea').innerHTML='<div class="empty"><div class="empty-ic">◌</div><div class="empty-tx">正在从潮汐里捞回随笔…</div></div>';
+retryLoadEntries();
 </script>
 </body>
 </html>
