@@ -415,7 +415,7 @@ input:checked+.sli:before{transform:translateX(16px);}
   color:var(--tx);word-break:break-word;overflow-wrap:anywhere;flex:1;min-width:0;display:block;
   white-space:pre-wrap;
 }
-.vm-msg-text.ai-text{color:#5a3018;font-style:italic;}
+.vm-msg-text.ai-text{color:#5a3018;}
 .vm-msg-del{
   background:none;border:none;cursor:pointer;
   font-size:12px;color:rgba(160,100,80,0.45);
@@ -539,6 +539,24 @@ input:checked+.sli:before{transform:translateX(16px);}
 .vv-bg-sw[data-tex="grid"]{background:linear-gradient(rgba(160,130,90,0.23) .5px,transparent .5px),linear-gradient(90deg,rgba(160,130,90,0.23) .5px,transparent .5px),#fdf8f0;background-size:9px 9px;}
 .vv-bg-sw[data-tex="dots"]{background:radial-gradient(circle,rgba(140,110,70,0.45) 1px,transparent 1px),#fdf8f0;background-size:7px 7px;}
 
+/* ── AUTH GATE ── */
+body.auth-pending .view,body.auth-locked .view{visibility:hidden;}
+#auth-gate{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at 50% 28%,rgba(255,253,246,.92),rgba(232,216,192,.94) 58%,rgba(192,160,112,.55));transition:opacity .24s ease,visibility .24s ease;}
+body.auth-ready #auth-gate{opacity:0;visibility:hidden;pointer-events:none;}
+.auth-card{width:min(100%,340px);padding:34px 28px 28px;border:1px solid rgba(150,110,70,.3);border-radius:18px;background:rgba(253,248,240,.94);box-shadow:0 18px 55px rgba(80,50,20,.16),inset 0 0 28px rgba(192,160,112,.08);text-align:center;}
+.auth-mark{font-family:'Cormorant Garamond',serif;font-size:13px;letter-spacing:.18em;color:var(--mu);opacity:.7;margin-bottom:8px;}
+.auth-title{font-family:'Cormorant Garamond',serif;font-size:30px;font-style:italic;color:var(--tx);}
+.auth-sub{font-family:'LXGW WenKai','Noto Serif SC',serif;font-size:13px;color:var(--mu);margin:7px 0 24px;}
+.auth-field{display:block;text-align:left;margin-bottom:13px;}
+.auth-field span{display:block;font-size:11px;letter-spacing:.12em;color:var(--mu);margin:0 0 6px 4px;}
+.auth-input{width:100%;height:43px;padding:0 13px;border:1px solid rgba(150,110,70,.35);border-radius:10px;background:rgba(255,253,248,.82);font:14px 'Lora','Noto Serif SC',serif;color:var(--tx);outline:none;box-shadow:inset 0 1px 4px rgba(80,50,20,.04);}
+.auth-input:focus{border-color:rgba(107,74,42,.65);box-shadow:inset 0 1px 5px rgba(80,50,20,.08);}
+.auth-submit{width:100%;height:43px;margin-top:5px;border:0;border-radius:10px;background:linear-gradient(135deg,#7a5030,#6b4a2a);color:var(--li);font:14px 'LXGW WenKai','Noto Serif SC',serif;letter-spacing:.08em;cursor:pointer;box-shadow:0 3px 10px rgba(80,50,20,.15);}
+.auth-submit:disabled{opacity:.55;cursor:wait;}
+.auth-status{min-height:20px;margin-top:12px;font-size:12px;line-height:1.55;color:#9a4f43;}
+.auth-account{font-size:12px;color:var(--mu);margin:-3px 0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.settings-btn.auth-logout{background:transparent;color:#8a5146;}
+
 /* ── FOCUS ACCESSIBILITY ── */
 button:focus-visible,input:focus-visible{outline:2px solid var(--br);outline-offset:2px;}
 ::selection{background:rgba(218,130,140,0.35);color:inherit;}
@@ -559,7 +577,25 @@ textarea:focus-visible{outline:none;}
 .notif-empty{font-family:'Cormorant Garamond',serif;font-size:13px;font-style:italic;color:var(--mu);text-align:center;padding:18px 12px;}
 </style>
 </head>
-<body>
+<body class="auth-pending">
+<!-- AUTH GATE -->
+<div id="auth-gate" aria-live="polite">
+  <form class="auth-card" id="auth-form" onsubmit="authLogin(event)">
+    <div class="auth-mark">· PRIVATE TIDE ·</div>
+    <div class="auth-title">Tidal Notes</div>
+    <div class="auth-sub">潮水只认得你的名字</div>
+    <label class="auth-field">
+      <span>邮 箱</span>
+      <input class="auth-input" id="auth-email" type="email" autocomplete="username" inputmode="email" required>
+    </label>
+    <label class="auth-field">
+      <span>密 码</span>
+      <input class="auth-input" id="auth-password" type="password" autocomplete="current-password" required>
+    </label>
+    <button class="auth-submit" id="auth-submit" type="submit">推门进去</button>
+    <div class="auth-status" id="auth-status"></div>
+  </form>
+</div>
 <!-- SIDEBAR -->
 <div id="sb-ov" onclick="sbClose(event)">
   <div id="sb-pn">
@@ -681,6 +717,13 @@ textarea:focus-visible{outline:none;}
       <div class="stat-legend">
         <div class="stat-legend-item"><div class="stat-legend-dot" style="background:rgba(107,74,42,0.75)"></div>随笔</div>
         <div class="stat-legend-item"><div class="stat-legend-dot" style="background:rgba(180,140,100,0.5)"></div>留言</div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">门 牌</div>
+      <div class="auth-account" id="auth-account"></div>
+      <div class="settings-row">
+        <button class="settings-btn auth-logout" onclick="authLogout()">锁门离开</button>
       </div>
     </div>
   </div>
@@ -950,7 +993,96 @@ function defStyle(){return{fontFamily:"'Cormorant Garamond','Noto Serif SC',seri
 // ══════════════════════════════════════════
 const SB_URL='https://nhptfkluxwbssxkovfad.supabase.co';
 const SB_KEY='sb_publishable_QxBNA1blQmE0B3sU1Pz4Xw_9jK-p0qS';
-function sbH(extra={}){return{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json',...extra};}
+const AUTH_SESSION_KEY='tn-auth-session-v1',AUTH_EMAIL_KEY='tn-auth-email';
+let _authSession=null,_authRefreshInFlight=null;
+function authReadSession(){
+  try{return JSON.parse(localStorage.getItem(AUTH_SESSION_KEY)||'null');}catch{return null;}
+}
+function authSaveSession(payload){
+  const expiresAt=payload.expires_at?Number(payload.expires_at)*1000:Date.now()+Number(payload.expires_in||3600)*1000;
+  _authSession={access_token:payload.access_token,refresh_token:payload.refresh_token,expires_at:expiresAt,email:payload.user?.email||_authSession?.email||''};
+  localStorage.setItem(AUTH_SESSION_KEY,JSON.stringify(_authSession));
+  if(_authSession.email)localStorage.setItem(AUTH_EMAIL_KEY,_authSession.email);
+  return _authSession;
+}
+function authClearSession(){
+  _authSession=null;
+  localStorage.removeItem(AUTH_SESSION_KEY);
+}
+function authHasTidalAccess(token){
+  try{
+    const part=token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+    const bytes=Uint8Array.from(atob(part.padEnd(Math.ceil(part.length/4)*4,'=')),c=>c.charCodeAt(0));
+    return JSON.parse(new TextDecoder().decode(bytes))?.app_metadata?.tidal_notes_access===true;
+  }catch{return false;}
+}
+async function authRequest(path,body,accessToken=''){
+  const headers={'apikey':SB_KEY,'Content-Type':'application/json'};
+  if(accessToken)headers.Authorization='Bearer '+accessToken;
+  const r=await fetch(SB_URL+'/auth/v1/'+path,{method:'POST',headers,body:body===null?undefined:JSON.stringify(body)});
+  const text=await r.text();let data=null;
+  try{data=text?JSON.parse(text):null;}catch{data={message:text};}
+  if(!r.ok){const err=new Error(data?.msg||data?.message||data?.error_description||('HTTP '+r.status));err.status=r.status;err.code=data?.error_code||data?.code;throw err;}
+  return data;
+}
+async function authRefresh(){
+  if(_authRefreshInFlight)return _authRefreshInFlight;
+  if(!_authSession?.refresh_token)throw new Error('没有可续期的登录');
+  _authRefreshInFlight=authRequest('token?grant_type=refresh_token',{refresh_token:_authSession.refresh_token})
+    .then(authSaveSession)
+    .finally(()=>{_authRefreshInFlight=null;});
+  return _authRefreshInFlight;
+}
+async function authEnsureFresh(){
+  if(!_authSession?.access_token)throw new Error('尚未登录');
+  if(Number(_authSession.expires_at)<=Date.now()+60000)await authRefresh();
+  if(!authHasTidalAccess(_authSession.access_token)){const err=new Error('没有潮汐随笔访问权限');err.code='tidal_access_denied';throw err;}
+  return _authSession.access_token;
+}
+function authSetStatus(message=''){const el=document.getElementById('auth-status');if(el)el.textContent=message;}
+function authShow(message=''){
+  document.body.classList.remove('auth-ready','auth-pending');document.body.classList.add('auth-locked');
+  const email=document.getElementById('auth-email');if(email&&!email.value)email.value=localStorage.getItem(AUTH_EMAIL_KEY)||'';
+  const password=document.getElementById('auth-password');if(password)password.value='';
+  authSetStatus(message);
+  setTimeout(()=>{(email?.value?password:email)?.focus();},80);
+}
+function authUnlock(){
+  document.body.classList.remove('auth-pending','auth-locked');document.body.classList.add('auth-ready');
+  const account=document.getElementById('auth-account');if(account)account.textContent=_authSession?.email||'';
+  authSetStatus('');
+}
+function authFriendlyError(err){
+  if(err?.code==='tidal_access_denied')return'这个账号还没有潮汐随笔的钥匙';
+  if(err?.status===400||err?.status===401)return'邮箱或密码没有对上，再试一次吧';
+  if(!navigator.onLine)return'现在没有网络，等潮水回来再试';
+  return'暂时没能打开门，请稍后再试';
+}
+async function authLogin(event){
+  event.preventDefault();
+  const email=document.getElementById('auth-email').value.trim();
+  const password=document.getElementById('auth-password').value;
+  const button=document.getElementById('auth-submit');button.disabled=true;button.textContent='正在开门…';authSetStatus('');
+  try{
+    const payload=await authRequest('token?grant_type=password',{email,password});
+    authSaveSession(payload);await authEnsureFresh();document.getElementById('auth-password').value='';authUnlock();
+    await retryLoadEntries();renderCal();renderDay();notifCheckUnread();
+  }catch(err){authClearSession();authSetStatus(authFriendlyError(err));}
+  finally{button.disabled=false;button.textContent='推门进去';}
+}
+async function authLogout(){
+  try{await flushPendingChanges();}catch(err){showToast('还有内容没同步，暂时不能锁门');return;}
+  const token=_authSession?.access_token;
+  try{if(token)await authRequest('logout',null,token);}catch(err){console.warn('remote logout failed',err);}
+  authClearSession();entries=[];_vmCache={};showViewDirect('vc');renderCal();renderDay();authShow('门已经锁好了');
+}
+async function authBoot(){
+  _authSession=authReadSession();
+  if(!_authSession){authShow();return;}
+  try{await authEnsureFresh();authUnlock();await retryLoadEntries();renderCal();renderDay();notifCheckUnread();}
+  catch(err){authClearSession();authShow('登录已经过期，请重新开门');}
+}
+function sbH(extra={}){return{...extra,'apikey':SB_KEY,'Authorization':'Bearer '+(_authSession?.access_token||''),'Content-Type':'application/json'};}
 let _syncState='loading',_loadInFlight=null,_lastCloudLoad=0,_entrySyncSeq=0;
 const _entrySyncQueues=new Map(),_entryLatestSeq=new Map();
 function setSyncState(state,label){
@@ -980,17 +1112,22 @@ async function sbQ(path,opts={},cfg={}){
   const retries=cfg.retries??(method==='GET'?2:0);
   const timeout=cfg.timeout||10000;
   const {signal:_unusedSignal,...fetchOpts}=opts;
-  let lastErr;
+  let lastErr,authRetried=false;
   for(let attempt=0;attempt<=retries;attempt++){
     const ctl=new AbortController();
     const timer=setTimeout(()=>ctl.abort(),timeout);
     try{
-      const r=await fetch(SB_URL+'/rest/v1/'+path,{headers:sbH(),...fetchOpts,signal:ctl.signal});
+      await authEnsureFresh();
+      const r=await fetch(SB_URL+'/rest/v1/'+path,{...fetchOpts,headers:sbH(fetchOpts.headers||{}),signal:ctl.signal});
       const t=await r.text();
       if(!r.ok){const err=new Error(t||('HTTP '+r.status));err.status=r.status;throw err;}
       return t?JSON.parse(t):null;
     }catch(err){
       lastErr=err;
+      if(err.status===401&&!authRetried&&_authSession?.refresh_token){
+        authRetried=true;
+        try{await authRefresh();attempt--;continue;}catch(refreshErr){lastErr=refreshErr;}
+      }
       const retryable=err.name==='AbortError'||!err.status||err.status===408||err.status===429||err.status>=500;
       if(!retryable||attempt===retries)break;
       await new Promise(resolve=>setTimeout(resolve,350*Math.pow(2,attempt)));
@@ -2286,7 +2423,7 @@ document.addEventListener('visibilitychange',()=>{
   if(!document.hidden&&onCalendar&&!_loadInFlight&&Date.now()-_lastCloudLoad>60000)retryLoadEntries();
 });
 document.getElementById('ea').innerHTML='<div class="empty"><div class="empty-ic">◌</div><div class="empty-tx">正在从潮汐里捞回随笔…</div></div>';
-retryLoadEntries();
+authBoot();
 </script>
 </body>
 </html>

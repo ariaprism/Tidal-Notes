@@ -1,0 +1,2 @@
+[functions.tidal-notes-mcp]
+verify_jwt = false
